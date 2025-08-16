@@ -10,6 +10,9 @@ A simple web application that demonstrates DOM manipulation using vanilla JavaSc
 - **Web Storage Integration**: Quotes and filter preferences are saved locally and persist across sessions
 - **Session Storage**: Tracks session data including quote count and session duration
 - **JSON Import/Export**: Import and export quotes in JSON format for data portability
+- **Server Synchronization**: Sync data with simulated server and handle conflicts
+- **Conflict Resolution**: Interactive conflict resolution with multiple resolution strategies
+- **Auto-Sync**: Automatic synchronization with configurable intervals
 - **Dynamic Content**: Real-time DOM updates without page refresh
 - **Responsive Design**: Clean and simple user interface
 
@@ -51,6 +54,12 @@ dom-manipulation/
    - **Import Quotes**: Click "Import Quotes (JSON)" to upload and add quotes from a JSON file
    - **Session Tracking**: View session statistics including quote count and session duration
 
+5. **Server Synchronization**:
+   - **Manual Sync**: Click "Sync Now" to manually synchronize with the server
+   - **Auto-Sync**: Enable automatic synchronization every 30 seconds
+   - **Conflict Resolution**: Choose how to resolve data conflicts (Use Server, Keep Local, or Merge)
+   - **Sync Status**: Monitor sync status, last sync time, and conflict resolution count
+
 ### JavaScript Functionality
 
 #### Core Functions:
@@ -63,6 +72,14 @@ dom-manipulation/
 - `importFromJsonFile()`: Imports quotes from a JSON file
 - `saveSessionData()`: Saves session information to sessionStorage
 - `updateSessionInfo()`: Updates the session information display
+- `syncQuotes()`: Synchronizes data with simulated server
+- `fetchQuotesFromServer()`: Fetches quotes from simulated server API
+- `postQuotesToServer()`: Posts quotes to simulated server API
+- `detectConflicts()`: Compares local and server data for conflicts
+- `resolveConflicts()`: Resolves data conflicts based on user choice
+- `checkForNewQuotes()`: Periodically checks for new quotes from server
+- `toggleAutoSync()`: Enables/disables automatic synchronization
+- `showNotification()`: Shows UI notifications for data updates
 
 #### Key Features:
 
@@ -75,6 +92,11 @@ dom-manipulation/
 - **Dynamic Filtering**: Real-time filtering of quotes by category
 - **JSON Handling**: Import/export functionality with data validation
 - **File Operations**: Blob creation and file download capabilities
+- **Server Simulation**: Simulates real server interactions with network delays
+- **Conflict Detection**: Identifies data conflicts between local and server data
+- **Conflict Resolution**: Multiple resolution strategies (server, local, merge)
+- **Auto-Sync**: Configurable automatic synchronization intervals
+- **Modal UI**: Interactive conflict resolution interface
 
 ## 🎨 Customization
 
@@ -101,6 +123,12 @@ This project demonstrates:
 - Data validation and error handling
 - Dynamic filtering and content management
 - Session persistence and state management
+- Asynchronous programming with async/await
+- Server communication simulation
+- Conflict detection and resolution strategies
+- Real-time data synchronization
+- Modal UI implementation
+- Network request handling and error management
 
 ---
 
