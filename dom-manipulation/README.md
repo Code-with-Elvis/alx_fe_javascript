@@ -8,6 +8,8 @@ A simple web application that demonstrates DOM manipulation using vanilla JavaSc
 - **Add New Quotes**: Add your own quotes with custom categories
 - **Category Filtering**: Filter quotes by category using the dropdown menu
 - **Web Storage Integration**: Quotes and filter preferences are saved locally and persist across sessions
+- **Session Storage**: Tracks session data including quote count and session duration
+- **JSON Import/Export**: Import and export quotes in JSON format for data portability
 - **Dynamic Content**: Real-time DOM updates without page refresh
 - **Responsive Design**: Clean and simple user interface
 
@@ -44,6 +46,11 @@ dom-manipulation/
    - The new quote will be displayed immediately
    - New categories are automatically added to the filter dropdown
 
+4. **Data Management**:
+   - **Export Quotes**: Click "Export Quotes (JSON)" to download your quotes as a JSON file
+   - **Import Quotes**: Click "Import Quotes (JSON)" to upload and add quotes from a JSON file
+   - **Session Tracking**: View session statistics including quote count and session duration
+
 ### JavaScript Functionality
 
 #### Core Functions:
@@ -52,6 +59,10 @@ dom-manipulation/
 - `addQuote()`: Adds a new quote to the collection and displays it
 - `filterQuotes()`: Filters quotes based on selected category
 - `populateCategories()`: Dynamically populates the category dropdown
+- `exportToJson()`: Exports quotes to a downloadable JSON file
+- `importFromJsonFile()`: Imports quotes from a JSON file
+- `saveSessionData()`: Saves session information to sessionStorage
+- `updateSessionInfo()`: Updates the session information display
 
 #### Key Features:
 
@@ -60,7 +71,10 @@ dom-manipulation/
 - **Event Handling**: Click event listeners for user interactions
 - **Input Validation**: Checks for empty fields before adding quotes
 - **Web Storage**: Uses localStorage to persist quotes and filter preferences
+- **Session Storage**: Tracks session data and user activity
 - **Dynamic Filtering**: Real-time filtering of quotes by category
+- **JSON Handling**: Import/export functionality with data validation
+- **File Operations**: Blob creation and file download capabilities
 
 ## 🎨 Customization
 
@@ -80,8 +94,11 @@ This project demonstrates:
 - Array operations and random selection
 - User input processing and validation
 - Dynamic content creation and updates
-- Web Storage API (localStorage) usage
+- Web Storage API (localStorage and sessionStorage) usage
 - JSON serialization and deserialization
+- File handling with FileReader API
+- Blob creation and file download
+- Data validation and error handling
 - Dynamic filtering and content management
 - Session persistence and state management
 

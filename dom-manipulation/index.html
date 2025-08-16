@@ -25,6 +25,20 @@
       />
       <button onclick="addQuote()">Add Quote</button>
     </div>
+    
+    <!-- Import/Export Section -->
+    <div style="margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+      <h3>Data Management</h3>
+      <div>
+        <button onclick="exportToJson()" style="margin-right: 10px;">Export Quotes (JSON)</button>
+        <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" style="display: none;" />
+        <button onclick="document.getElementById('importFile').click()">Import Quotes (JSON)</button>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #666;">
+        <p>💾 Quotes are automatically saved to your browser's local storage</p>
+        <p>📊 Session data: <span id="sessionInfo">Loading...</span></p>
+      </div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>

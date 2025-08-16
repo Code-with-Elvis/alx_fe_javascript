@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const quoteDisplay = document.getElementById("quoteDisplay");
   const newQuoteBtn = document.getElementById("newQuote");
   const categoryFilter = document.getElementById("categoryFilter");
+  const sessionInfo = document.getElementById("sessionInfo");
 
   // ===== Web Storage Functions =====
   
@@ -45,6 +46,119 @@ document.addEventListener("DOMContentLoaded", () => {
     if (categoryFilter) {
       localStorage.setItem('lastFilter', categoryFilter.value);
     }
+  }
+
+  // ===== Session Storage Functions =====
+  
+  // Save session data (last viewed quote, timestamp)
+  function saveSessionData() {
+    const sessionData = {
+      lastViewedQuote: quotes.length > 0 ? quotes[quotes.length - 1] : null,
+      timestamp: new Date().toISOString(),
+      sessionStart: sessionStorage.getItem('sessionStart') || new Date().toISOString(),
+      quoteCount: quotes.length
+    };
+    sessionStorage.setItem('sessionData', JSON.stringify(sessionData));
+    updateSessionInfo();
+  }
+
+  // Load session data
+  function loadSessionData() {
+    const sessionData = sessionStorage.getItem('sessionData');
+    if (sessionData) {
+      return JSON.parse(sessionData);
+    }
+    return null;
+  }
+
+  // Update session info display
+  function updateSessionInfo() {
+    if (!sessionInfo) return;
+    
+    const sessionData = loadSessionData();
+    if (sessionData) {
+      const sessionStart = new Date(sessionData.sessionStart);
+      const now = new Date();
+      const duration = Math.round((now - sessionStart) / 1000 / 60); // minutes
+      
+      sessionInfo.innerHTML = `
+        Quotes: ${quotes.length} | 
+        Session: ${duration} min | 
+        Last viewed: ${sessionData.lastViewedQuote ? sessionData.lastViewedQuote.category : 'None'}
+      `;
+    } else {
+      sessionInfo.textContent = 'No session data';
+    }
+  }
+
+  // ===== JSON Import/Export Functions =====
+  
+  // Export quotes to JSON file
+  function exportToJson() {
+    if (quotes.length === 0) {
+      alert('No quotes to export!');
+      return;
+    }
+
+    const dataStr = JSON.stringify(quotes, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `quotes_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    alert(`Exported ${quotes.length} quotes successfully!`);
+  }
+
+  // Import quotes from JSON file
+  function importFromJsonFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileReader = new FileReader();
+    fileReader.onload = function(event) {
+      try {
+        const importedQuotes = JSON.parse(event.target.result);
+        
+        // Validate the imported data
+        if (!Array.isArray(importedQuotes)) {
+          throw new Error('Invalid format: Expected an array of quotes');
+        }
+        
+        // Validate each quote has required properties
+        const validQuotes = importedQuotes.filter(quote => {
+          return quote && typeof quote.text === 'string' && typeof quote.category === 'string';
+        });
+        
+        if (validQuotes.length === 0) {
+          throw new Error('No valid quotes found in the file');
+        }
+        
+        // Add imported quotes to existing collection
+        quotes.push(...validQuotes);
+        
+        // Save to storage and update UI
+        saveQuotesToStorage();
+        populateCategories();
+        showRandomQuote();
+        
+        alert(`Successfully imported ${validQuotes.length} quotes!`);
+        
+        // Clear the file input
+        event.target.value = '';
+        
+      } catch (error) {
+        alert(`Import failed: ${error.message}`);
+        console.error('Import error:', error);
+      }
+    };
+    
+    fileReader.readAsText(file);
   }
 
   // ===== Filtering Functions =====
@@ -107,6 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const idx = Math.floor(Math.random() * quotes.length);
     renderQuote(quotes[idx]);
+    
+    // Save session data after showing a quote
+    saveSessionData();
   }
 
   // Add quote (required: updates array + DOM)
@@ -129,6 +246,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Save to localStorage
     saveQuotesToStorage();
+    
+    // Save session data
+    saveSessionData();
     
     // Update categories dropdown if new category
     populateCategories();
@@ -184,6 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
   createAddQuoteForm();
   populateCategories(); // Populate category filter
   loadLastFilter(); // Load last selected filter
+  updateSessionInfo(); // Update session info display
   showRandomQuote();
 
   // Expose for inline HTML handlers if your page uses them
@@ -191,4 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.showRandomQuote = showRandomQuote;
   window.createAddQuoteForm = createAddQuoteForm;
   window.filterQuotes = filterQuotes; // Expose filter function for HTML
+  window.exportToJson = exportToJson; // Expose export function for HTML
+  window.importFromJsonFile = importFromJsonFile; // Expose import function for HTML
 });
