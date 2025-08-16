@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (conflictCount) conflictCount.textContent = conflictsResolved;
       
       // Show success notification
-      showNotification(`Successfully synced ${syncedData.length} quotes!`, 'success');
+      showNotification('Quotes synced with server!', 'success');
       
       console.log('Sync operation completed successfully');
       
