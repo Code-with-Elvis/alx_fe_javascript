@@ -137,45 +137,91 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  // Simulate fetching data from server
+  // Fetch data from server using mock API
   async function fetchQuotesFromServer() {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
-    // Simulate server occasionally adding new quotes
-    const serverData = [...serverQuotes];
-    if (Math.random() > 0.7) {
-      const newServerQuotes = [
-        {
-          text: "Innovation distinguishes between a leader and a follower.",
-          category: "Leadership",
-          id: `server_${Date.now()}`,
-          timestamp: new Date().toISOString()
-        },
-        {
-          text: "The future belongs to those who believe in the beauty of their dreams.",
-          category: "Inspiration",
-          id: `server_${Date.now() + 1}`,
-          timestamp: new Date().toISOString()
-        }
-      ];
-      serverData.push(...newServerQuotes);
+    try {
+      // Use JSONPlaceholder as mock API
+      const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+      const posts = await response.json();
+      
+      // Convert posts to quotes format
+      const serverData = posts.slice(0, 5).map((post, index) => ({
+        text: post.title,
+        category: getCategoryFromId(post.id),
+        id: `server_${post.id}`,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Add some predefined quotes to ensure variety
+      serverData.push(...serverQuotes);
+      
+      // Simulate server occasionally adding new quotes
+      if (Math.random() > 0.7) {
+        const newServerQuotes = [
+          {
+            text: "Innovation distinguishes between a leader and a follower.",
+            category: "Leadership",
+            id: `server_${Date.now()}`,
+            timestamp: new Date().toISOString()
+          },
+          {
+            text: "The future belongs to those who believe in the beauty of their dreams.",
+            category: "Inspiration",
+            id: `server_${Date.now() + 1}`,
+            timestamp: new Date().toISOString()
+          }
+        ];
+        serverData.push(...newServerQuotes);
+      }
+      
+      return serverData;
+    } catch (error) {
+      console.error('Failed to fetch from server:', error);
+      // Fallback to local server data if API fails
+      return [...serverQuotes];
     }
-    
-    return serverData;
   }
 
-  // Simulate posting data to server
+  // Helper function to get category from post ID
+  function getCategoryFromId(id) {
+    const categories = ['Motivation', 'Programming', 'Inspiration', 'Philosophy', 'Leadership'];
+    return categories[id % categories.length];
+  }
+
+  // Post data to server using mock API
   async function postQuotesToServer(data) {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1500));
-    
-    // Simulate server response with updated timestamps
-    return data.map(quote => ({
-      ...quote,
-      timestamp: new Date().toISOString(),
-      synced: true
-    }));
+    try {
+      // Use JSONPlaceholder as mock API for posting
+      const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: 'Quotes Sync',
+          body: JSON.stringify(data),
+          userId: 1
+        })
+      });
+      
+      const result = await response.json();
+      
+      // Simulate server response with updated timestamps
+      return data.map(quote => ({
+        ...quote,
+        timestamp: new Date().toISOString(),
+        synced: true,
+        serverId: result.id
+      }));
+    } catch (error) {
+      console.error('Failed to post to server:', error);
+      // Fallback: return data with timestamps if API fails
+      return data.map(quote => ({
+        ...quote,
+        timestamp: new Date().toISOString(),
+        synced: false
+      }));
+    }
   }
 
   // Compare local and server data to detect conflicts
@@ -275,13 +321,15 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error('Sync failed:', error);
       if (syncStatus) syncStatus.textContent = 'Sync failed';
-      alert('Sync failed. Please try again.');
+      showNotification('Sync failed. Please try again.', 'error');
     }
   }
 
   // Perform the actual sync operation
   async function performSync(localData, serverData) {
     try {
+      console.log('Starting sync operation...');
+      
       // Post local data to server
       const syncedData = await postQuotesToServer(localData);
       
@@ -302,9 +350,15 @@ document.addEventListener("DOMContentLoaded", () => {
       conflictsResolved++;
       if (conflictCount) conflictCount.textContent = conflictsResolved;
       
+      // Show success notification
+      showNotification(`Successfully synced ${syncedData.length} quotes!`, 'success');
+      
+      console.log('Sync operation completed successfully');
+      
     } catch (error) {
       console.error('Sync operation failed:', error);
       if (syncStatus) syncStatus.textContent = 'Sync failed';
+      showNotification('Sync failed. Please try again.', 'error');
       throw error;
     }
   }
@@ -388,35 +442,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Periodically check for new quotes from server
   function checkForNewQuotes() {
+    console.log('Checking for new quotes from server...');
+    
     fetchQuotesFromServer().then(serverData => {
       const conflictData = detectConflicts(quotes, serverData);
+      
       if (conflictData.newServer.length > 0) {
         // Show notification for new server quotes
-        showNotification(`Found ${conflictData.newServer.length} new quotes from server!`);
+        showNotification(`Found ${conflictData.newServer.length} new quotes from server!`, 'info');
         if (syncStatus) syncStatus.textContent = 'New quotes available';
+        
+        // Update UI to show new quotes are available
+        updateSyncStatus('New quotes detected');
+      } else {
+        console.log('No new quotes found');
       }
     }).catch(error => {
       console.error('Failed to check for new quotes:', error);
+      updateSyncStatus('Check failed');
+      showNotification('Failed to check for new quotes', 'error');
     });
   }
 
-  // Show notification for data updates
-  function showNotification(message) {
+  // Update sync status with timestamp
+  function updateSyncStatus(status) {
+    if (syncStatus) {
+      syncStatus.textContent = `${status} - ${new Date().toLocaleTimeString()}`;
+    }
+  }
+
+  // Show notification for data updates and conflicts
+  function showNotification(message, type = 'success') {
     // Create notification element
     const notification = document.createElement('div');
+    
+    // Set background color based on type
+    let bgColor = '#28a745'; // success
+    if (type === 'error') bgColor = '#dc3545';
+    if (type === 'warning') bgColor = '#ffc107';
+    if (type === 'info') bgColor = '#17a2b8';
+    
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background-color: #28a745;
+      background-color: ${bgColor};
       color: white;
       padding: 15px;
       border-radius: 5px;
       z-index: 1001;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+      word-wrap: break-word;
     `;
-    notification.textContent = message;
+    
+    // Add icon based on type
+    let icon = '✅';
+    if (type === 'error') icon = '❌';
+    if (type === 'warning') icon = '⚠️';
+    if (type === 'info') icon = 'ℹ️';
+    
+    notification.innerHTML = `<div>${icon} ${message}</div>`;
     
     // Add animation styles
     const style = document.createElement('style');
